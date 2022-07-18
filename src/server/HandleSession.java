@@ -9,7 +9,7 @@ import io.Cmd_Client2Server;
 import io.Message;
 import io.Session;
 
-public class HandleSession {
+public class HandleSession extends Cmd_Client2Server {
 	private static HandleSession instance;
 
 	public static HandleSession gI() {
@@ -25,15 +25,17 @@ public class HandleSession {
 		case Cmd_Client2Server.LOGIN:
 			String username = m.reader().readUTF();
 			String password = m.reader().readUTF();
-			ResultSet red = CaroServer.sql.st.executeQuery("SELECT * FROM `user` WHERE (`username`LIKE'" + username
-					+ "' AND `password`LIKE'" + password + "');");
-			if (red != null && red.first()) {
+			ResultSet rs = CaroServer.sql.statement.executeQuery("SELECT * FROM `user` WHERE (`username`LIKE'"
+					+ username + "' AND `password`LIKE'" + password + "');");
+			if (rs != null && rs.first()) {
 				player = PlayerManager.gI().get(username);
 				if (player != null) {
 					conn.SendMessageDialog("Your account is login in other device, please try again");
 				} else {
+					int id = rs.getInt("id");
 					conn.username = username;
 					player = new Player(conn);
+					player.id = id;
 					PlayerManager.gI().put(player);
 					player.LoginOK();
 				}
@@ -41,6 +43,60 @@ public class HandleSession {
 				conn.SendMessageDialog("Username or password incorrect");
 			}
 			break;
+		case Cmd_Client2Server.REGISTER:
+			String check = "abcdefghijklmnopqrstuvwxyz1234567890";
+			String name = m.reader().readUTF();
+			String pass = m.reader().readUTF();
+			String repass = m.reader().readUTF();
+			if (name.length() < 6 || name.length() > 13) {
+				conn.SendMessageDialog("Username is 6-12 in length");
+				break;
+			}
+			if (pass.length() < 6 || pass.length() > 13) {
+				conn.SendMessageDialog("Password is 6-12 in length");
+				break;
+			}
+			if (!pass.equals(repass)) {
+				conn.SendMessageDialog("Your password and confirmation password do not match");
+				break;
+			}
+			boolean flag = true;
+			for (int i = 0; i < name.length(); i++) {
+				if (!check.contains(name.charAt(i) + "")) {
+					conn.SendMessageDialog("Username contains only a-z and 1-9");
+					flag = false;
+					break;
+				}
+			}
+			if (!flag) break;
+			for (int i = 0; i < pass.length(); i++) {
+				if (!check.contains(pass.charAt(i) + "")) {
+					conn.SendMessageDialog("Password contains only a-z and 1-9");
+					flag = false;
+					break;
+				}
+			}
+			if (!flag) break;
+
+			ResultSet resultSet = CaroServer.sql.statement
+					.executeQuery("SELECT * FROM `user` WHERE (`username`LIKE'" + name + "');");
+			if (resultSet != null && resultSet.first()) {
+				conn.SendMessageDialog("Username already used");
+			} else {
+				String sql = "INSERT INTO `user`(`id`, `username`, `password`) VALUES (0,'" + name + "','" + pass + "')";
+				try {
+					int int1 = CaroServer.sql.executeSQLUpdate(sql);
+					if (int1 == 0) {
+						System.out.print("Cant insert");
+					}
+				} catch (Exception e) {
+					System.out.print("Cant insert");
+					e.printStackTrace();
+				}
+				conn.SendMessageDialog("Register success");
+			}
+			break;
+		case Cmd_Client2Server.LOG_OUT:
 		case Cmd_Client2Server.PIECE:
 		case Cmd_Client2Server.CREATE_ROOM:
 		case Cmd_Client2Server.JOIN_ROOM:
@@ -54,11 +110,18 @@ public class HandleSession {
 				processPlayerMessage(player, m);
 			}
 			break;
+		default:
+			conn.SendMessageDialog("empty");
+			break;
 		}
 	}
 
 	public void processPlayerMessage(Player player, Message m) throws Exception {
 		switch (m.command) {
+		case Cmd_Client2Server.LOG_OUT:
+			PlayerManager.gI().remove(player);
+			player.LogOutOk();
+			break;
 		case Cmd_Client2Server.PIECE:
 			Room room = RoomManager.gI().GetRoomWithPlayer(player);
 			if (room == null) {
@@ -68,7 +131,7 @@ public class HandleSession {
 				player.SendMessageDialog("The match not started yet");
 				break;
 			}
-			if (player != room.currentPlayer) {
+			if (player != room.turnPlayer) {
 				player.SendMessageDialog("It's not your turn yet");
 				break;
 			}
@@ -85,9 +148,9 @@ public class HandleSession {
 				room.SendBoard();
 				room.waitPlayer = player;
 				if (player != room.players[0]) {
-					room.currentPlayer = room.players[0];
+					room.turnPlayer = room.players[0];
 				} else {
-					room.currentPlayer = room.players[1];
+					room.turnPlayer = room.players[1];
 				}
 				if (checkSetPiece == 2) {
 					room.XWin();
@@ -138,7 +201,7 @@ public class HandleSession {
 			room5.removePlayer(player);
 			for (int i = 0; i < room5.players.length; i++) {
 				if (room5.players[i] != null) {
-					room5.players[i].SendMessageDialog("Player '" + player.username + "' leaves the room");
+					room5.players[i].SendMessageDialog("Player '" + player.username + "' leaves room");
 				}
 			}
 			if (room5.sizeOfPlayers() == 0) {
@@ -169,8 +232,8 @@ public class HandleSession {
 				player.SendMessageDialog("The match has started, can't ready");
 				break;
 			}
-			if (player == room7.currentPlayer || player == room7.waitPlayer) {
-				player.SendMessageDialog("You are ready");
+			if (player == room7.turnPlayer || player == room7.waitPlayer) {
+				player.SendMessageDialog("You have readied");
 				break;
 			}
 			if (room7.sizeOfPlayers() < 2) {
@@ -184,11 +247,11 @@ public class HandleSession {
 				} else if (player == room7.players[1]) {
 					room7.isX[1] = true;
 				}
-				room7.currentPlayer = player;
-				room7.SendChat("Server: player " + player.username + " is ready");
+				room7.turnPlayer = player;
+				room7.SendChat("Server: player " + player.username + " are ready");
 			} else if (room7.countReady == 2) {
 				room7.board = new Board();
-				room7.SendChat("Server: player " + player.username + " is ready");
+				room7.SendChat("Server: player " + player.username + " are ready");
 				room7.isFight = true;
 				room7.SendChat("Server: Match start");
 				room7.waitPlayer = player;

@@ -10,6 +10,7 @@ import server.RoomManager;
 public class Player {
 	public Session conn;
 	public String username;
+	public int id;
 
 	public Player(Session session) {
 		conn = session;
@@ -18,6 +19,11 @@ public class Player {
 
 	public void LoginOK() {
 		Message m = new Message(Cmd_Server2Client.LOGIN);
+		conn.sendMessage(m);
+	}
+	
+	public void LogOutOk() {
+		Message m = new Message(Cmd_Server2Client.LOG_OUT_OK);
 		conn.sendMessage(m);
 	}
 

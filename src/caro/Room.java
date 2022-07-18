@@ -9,7 +9,7 @@ public class Room {
 	public static int baseId;
 	public int RoomNumber;
 	public Player[] players = new Player[2];
-	public Player currentPlayer = null;
+	public Player turnPlayer = null;
 	public Player waitPlayer = null;
 	public Board board = new Board();
 	public int countReady;
@@ -54,7 +54,7 @@ public class Room {
 		isX[0] = false;
 		isX[1] = false;
 		isFight = false;
-		currentPlayer = null;
+		turnPlayer = null;
 		waitPlayer = null;
 	}
 

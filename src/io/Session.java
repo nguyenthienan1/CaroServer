@@ -27,18 +27,14 @@ public class Session {
 	public Session(Socket s) {
 		connectTime = System.currentTimeMillis();
 		try {
-			setSocket(s);
-			connected = true;
+			if (s != null) {
+				socket = s;
+				dis = new DataInputStream(s.getInputStream());
+				dos = new DataOutputStream(s.getOutputStream());
+				connected = true;
+			}
 		} catch (IOException ioEx) {
 			ioEx.printStackTrace();
-		}
-	}
-
-	protected void setSocket(Socket s) throws IOException {
-		socket = s;
-		if (s != null) {
-			dis = new DataInputStream(s.getInputStream());
-			dos = new DataOutputStream(s.getOutputStream());
 		}
 	}
 
@@ -73,7 +69,7 @@ public class Session {
 			}
 			DataQueue.clear();
 			dos = null;
-			System.out.println("Finish send thread: " + socket.getInetAddress());
+			System.out.println("Finish send thread: " + socket.getRemoteSocketAddress());
 		}).start();
 	}
 
@@ -90,7 +86,7 @@ public class Session {
 			}
 			disconnect();
 			dis = null;
-			System.out.println("Finish receive thread: " + socket.getInetAddress());
+			System.out.println("Finish receive thread: " + socket.getRemoteSocketAddress());
 		}).start();
 	}
 
@@ -102,8 +98,8 @@ public class Session {
 		if (size > 0) {
 			dos.write(data);
 		}
-		// System.out.println("Send message: command (" + m.command + ") size [" + size
-		// + "]");
+//		 System.out.println("Send message: command (" + m.command + ") size [" + size
+//		 + "]");
 	}
 
 	private Message readMessage() throws IOException {
@@ -113,8 +109,8 @@ public class Session {
 		if (size > 0) {
 			dis.readFully(data);
 		}
-		// System.out.println("Receive message: command (" + cmd + ") size [" + size +
-		// "]");
+//		 System.out.println("Receive message: command (" + cmd + ") size [" + size +
+//		 "]");
 		return new Message(cmd, data);
 	}
 

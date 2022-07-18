@@ -22,13 +22,11 @@ public class CaroServer implements Runnable {
 		try {
 			listenSocket = new ServerSocket(PORT);
 			System.out.println("Listen " + PORT);
-			long curTime;
 			while (true) {
-				curTime = System.currentTimeMillis();
 				Socket clientSocket = listenSocket.accept();
 				Session conn = new Session(clientSocket);
 				conn.start();
-				System.out.println("Accept socket: " + (System.currentTimeMillis() - curTime));
+				System.out.println("Accept socket: " + clientSocket.getRemoteSocketAddress());
 			}
 		} catch (IOException ioE) {
 			ioE.printStackTrace();
