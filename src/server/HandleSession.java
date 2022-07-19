@@ -38,6 +38,7 @@ public class HandleSession extends Cmd_Client2Server {
 					player.id = id;
 					PlayerManager.gI().put(player);
 					player.LoginOK();
+					System.out.println("Player " + player.username + " login");
 				}
 			} else {
 				conn.SendMessageDialog("Username or password incorrect");
@@ -121,6 +122,7 @@ public class HandleSession extends Cmd_Client2Server {
 		case Cmd_Client2Server.LOG_OUT:
 			PlayerManager.gI().remove(player);
 			player.LogOutOk();
+			System.out.println("Player " + player.username + " log out");
 			break;
 		case Cmd_Client2Server.PIECE:
 			Room room = RoomManager.gI().GetRoomWithPlayer(player);

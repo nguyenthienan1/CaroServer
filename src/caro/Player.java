@@ -45,6 +45,7 @@ public class Player {
 			Room r = RoomManager.gI().get(i);
 			m.writer().writeInt(r.RoomNumber);
 			m.writer().writeInt(r.sizeOfPlayers());
+			m.writer().writeBoolean(r.isFight);
 		}
 		conn.sendMessage(m);
 		m.cleanup();
