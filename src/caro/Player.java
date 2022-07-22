@@ -21,7 +21,7 @@ public class Player {
 		Message m = new Message(Cmd_Server2Client.LOGIN);
 		conn.sendMessage(m);
 	}
-	
+
 	public void LogOutOk() {
 		Message m = new Message(Cmd_Server2Client.LOG_OUT_OK);
 		conn.sendMessage(m);

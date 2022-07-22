@@ -22,7 +22,7 @@ public class HandleSession extends Cmd_Client2Server {
 	public void processSesionMessage(Session conn, Message m) throws Exception {
 		Player player = PlayerManager.gI().get(conn.username);
 		switch (m.command) {
-		case Cmd_Client2Server.LOGIN:
+		case LOGIN:
 			String username = m.reader().readUTF();
 			String password = m.reader().readUTF();
 			ResultSet rs = CaroServer.sql.statement.executeQuery("SELECT * FROM `user` WHERE (`username`LIKE'"
@@ -30,7 +30,7 @@ public class HandleSession extends Cmd_Client2Server {
 			if (rs != null && rs.first()) {
 				player = PlayerManager.gI().get(username);
 				if (player != null) {
-					conn.SendMessageDialog("Your account is login in other device, please try again");
+					conn.SendMessageDialog("Your account login on other device, please try again");
 				} else {
 					int id = rs.getInt("id");
 					conn.username = username;
@@ -44,8 +44,7 @@ public class HandleSession extends Cmd_Client2Server {
 				conn.SendMessageDialog("Username or password incorrect");
 			}
 			break;
-		case Cmd_Client2Server.REGISTER:
-			String check = "abcdefghijklmnopqrstuvwxyz1234567890";
+		case REGISTER:
 			String name = m.reader().readUTF();
 			String pass = m.reader().readUTF();
 			String repass = m.reader().readUTF();
@@ -61,52 +60,57 @@ public class HandleSession extends Cmd_Client2Server {
 				conn.SendMessageDialog("Your password and confirmation password do not match");
 				break;
 			}
+			String check = "abcdefghijklmnopqrstuvwxyz1234567890";
 			boolean flag = true;
 			for (int i = 0; i < name.length(); i++) {
-				if (!check.contains(name.charAt(i) + "")) {
+				if (!check.contains(String.valueOf(name.charAt(i)))) {
 					conn.SendMessageDialog("Username contains only a-z and 1-9");
 					flag = false;
 					break;
 				}
 			}
-			if (!flag) break;
+			if (!flag)
+				break;
 			for (int i = 0; i < pass.length(); i++) {
-				if (!check.contains(pass.charAt(i) + "")) {
+				if (!check.contains(String.valueOf(pass.charAt(i)))) {
 					conn.SendMessageDialog("Password contains only a-z and 1-9");
 					flag = false;
 					break;
 				}
 			}
-			if (!flag) break;
+			if (!flag)
+				break;
 
 			ResultSet resultSet = CaroServer.sql.statement
 					.executeQuery("SELECT * FROM `user` WHERE (`username`LIKE'" + name + "');");
 			if (resultSet != null && resultSet.first()) {
 				conn.SendMessageDialog("Username already used");
 			} else {
-				String sql = "INSERT INTO `user`(`id`, `username`, `password`) VALUES (0,'" + name + "','" + pass + "')";
+				String sql = "INSERT INTO `user`(`id`, `username`, `password`) VALUES (0,'" + name + "','" + pass
+						+ "')";
 				try {
 					int int1 = CaroServer.sql.executeSQLUpdate(sql);
 					if (int1 == 0) {
-						System.out.print("Cant insert");
+						System.out.print("Can't insert db");
 					}
 				} catch (Exception e) {
-					System.out.print("Cant insert");
+					System.out.print("Can't insert db");
 					e.printStackTrace();
 				}
 				conn.SendMessageDialog("Register success");
 			}
 			break;
-		case Cmd_Client2Server.LOG_OUT:
-		case Cmd_Client2Server.PIECE:
-		case Cmd_Client2Server.CREATE_ROOM:
-		case Cmd_Client2Server.JOIN_ROOM:
-		case Cmd_Client2Server.UPDATE_LIST_ROOM:
-		case Cmd_Client2Server.LEAVE_ROOM:
-		case Cmd_Client2Server.CHAT_ROOM:
-		case Cmd_Client2Server.READY:
+		case LOG_OUT:
+		case PIECE:
+		case CREATE_ROOM:
+		case JOIN_ROOM:
+		case UPDATE_LIST_ROOM:
+		case LEAVE_ROOM:
+		case CHAT_ROOM:
+		case READY:
 			if (player == null) {
 				conn.SendMessageDialog("An error occurred");
+				System.out.println("Player null");
 			} else {
 				processPlayerMessage(player, m);
 			}
@@ -119,14 +123,16 @@ public class HandleSession extends Cmd_Client2Server {
 
 	public void processPlayerMessage(Player player, Message m) throws Exception {
 		switch (m.command) {
-		case Cmd_Client2Server.LOG_OUT:
+		case LOG_OUT:
 			PlayerManager.gI().remove(player);
 			player.LogOutOk();
 			System.out.println("Player " + player.username + " log out");
+			player = null;
 			break;
-		case Cmd_Client2Server.PIECE:
-			Room room = RoomManager.gI().GetRoomWithPlayer(player);
+		case PIECE:
+			Room room = RoomManager.gI().GetRoom(player);
 			if (room == null) {
+				System.out.println("Room null");
 				break;
 			}
 			if (!room.isFight) {
@@ -164,8 +170,8 @@ public class HandleSession extends Cmd_Client2Server {
 			}
 
 			break;
-		case Cmd_Client2Server.CREATE_ROOM:
-			Room room2 = RoomManager.gI().GetRoomWithPlayer(player);
+		case CREATE_ROOM:
+			Room room2 = RoomManager.gI().GetRoom(player);
 			if (room2 != null) {
 				player.SendMessageDialog("You are in another room");
 				break;
@@ -175,29 +181,30 @@ public class HandleSession extends Cmd_Client2Server {
 			room2.players[0] = player;
 			player.JoinRoomOk(room2.RoomNumber);
 			break;
-		case Cmd_Client2Server.JOIN_ROOM:
-			Room room3 = RoomManager.gI().GetRoomWithPlayer(player);
+		case JOIN_ROOM:
+			Room room3 = RoomManager.gI().GetRoom(player);
 			if (room3 != null) {
 				player.SendMessageDialog("You are in another room");
 				break;
 			}
-			room3 = RoomManager.gI().GetRoomWithNum(m.reader().readInt());
+			room3 = RoomManager.gI().GetRoom(m.reader().readInt());
 			if (room3 == null) {
-				player.SendMessageDialog("Not found room selected, please update list room");
+				player.SendMessageDialog("Room not found, please update list room");
 				break;
 			}
 			if (!room3.addPlayer(player)) {
-				player.SendMessageDialog("Room is full");
+				player.SendMessageDialog("Room full");
 				break;
 			}
 			player.JoinRoomOk(room3.RoomNumber);
 			break;
-		case Cmd_Client2Server.UPDATE_LIST_ROOM:
+		case UPDATE_LIST_ROOM:
 			player.SendListRoom();
 			break;
-		case Cmd_Client2Server.LEAVE_ROOM:
-			Room room5 = RoomManager.gI().GetRoomWithPlayer(player);
+		case LEAVE_ROOM:
+			Room room5 = RoomManager.gI().GetRoom(player);
 			if (room5 == null) {
+				System.out.println("Room null");
 				break;
 			}
 			room5.removePlayer(player);
@@ -214,9 +221,10 @@ public class HandleSession extends Cmd_Client2Server {
 				room5.finishMatch();
 			}
 			break;
-		case Cmd_Client2Server.CHAT_ROOM:
-			Room room6 = RoomManager.gI().GetRoomWithPlayer(player);
+		case CHAT_ROOM:
+			Room room6 = RoomManager.gI().GetRoom(player);
 			if (room6 == null) {
+				System.out.println("Room null");
 				break;
 			}
 			String content = m.reader().readUTF();
@@ -225,9 +233,10 @@ public class HandleSession extends Cmd_Client2Server {
 				room6.SendChat(player.username + ": " + content);
 			}
 			break;
-		case Cmd_Client2Server.READY:
-			Room room7 = RoomManager.gI().GetRoomWithPlayer(player);
+		case READY:
+			Room room7 = RoomManager.gI().GetRoom(player);
 			if (room7 == null) {
+				System.out.println("Room null");
 				break;
 			}
 			if (room7.isFight) {

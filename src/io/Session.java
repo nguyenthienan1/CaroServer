@@ -55,18 +55,17 @@ public class Session {
 	private void sendMessageThread() {
 		new Thread(() -> {
 			Message m;
-			while (connected) {
-				try {
+			try {
+				while (connected) {
 					m = DataQueue.poll(5, TimeUnit.SECONDS);
 					if (m != null) {
 						doSendMessage(m);
 					}
-				} catch (Exception e) {
-					e.printStackTrace();
-					disconnect();
-					break;
 				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+			disconnect();
 			DataQueue.clear();
 			dos = null;
 			System.out.println("Finish send thread: " + socket.getRemoteSocketAddress());
@@ -107,7 +106,7 @@ public class Session {
 		int size = dis.readInt();
 		byte[] data = new byte[size];
 		if (size > 0) {
-			dis.readFully(data);
+			dis.read(data);
 		}
 //		 System.out.println("Receive message: command (" + cmd + ") size [" + size +
 //		 "]");
@@ -134,16 +133,18 @@ public class Session {
 			connected = false;
 			Player p = PlayerManager.gI().get(username);
 			if (p != null) {
-				Room r = RoomManager.gI().GetRoomWithPlayer(p);
+				Room r = RoomManager.gI().GetRoom(p);
 				if (r != null) {
 					r.removePlayer(p);
 					if (r.sizeOfPlayers() == 0) {
 						RoomManager.gI().remove(r);
+						r = null;
 					} else {
 						r.finishMatch();
 					}
 				}
 				PlayerManager.gI().remove(p);
+				p = null;
 			}
 		}
 	}

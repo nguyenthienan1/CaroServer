@@ -17,17 +17,17 @@ public class PlayerManager {
 
 	public void put(Player p) {
 		playerHashMapName.put(p.username, p);
-		//System.out.println("Add player " + p.username);
+		// System.out.println("Add player " + p.username);
 	}
 
 	public void remove(Player p) {
 		playerHashMapName.remove(p.username);
-		//System.out.println("Remove player " + p.username);
+		// System.out.println("Remove player " + p.username);
 	}
 
 	public void remove(String username) {
 		playerHashMapName.remove(username);
-		//System.out.println("Remove player " + username);
+		// System.out.println("Remove player " + username);
 	}
 
 	public Player get(String username) {
