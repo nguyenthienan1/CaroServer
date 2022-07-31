@@ -9,4 +9,5 @@ public class Cmd_Server2Client {
 	public static final int SEND_LIST_ROOM = 5;
 	public static final int LEAVE_ROOM_SUCCESS = 6;
 	public static final int CHAT_ROOM = 7;
+	public static final int RESET_BOARD = 8;
 }

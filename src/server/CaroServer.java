@@ -42,7 +42,7 @@ public class CaroServer implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+
 		System.exit(0);
 	}
 

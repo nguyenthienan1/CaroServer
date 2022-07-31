@@ -8,6 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import caro.FightPlayer;
 import caro.Player;
 import caro.Room;
 import server.HandleSession;
@@ -63,12 +64,12 @@ public class Session {
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				// e.printStackTrace();
 			}
 			disconnect();
 			DataQueue.clear();
 			dos = null;
-			System.out.println("Finish send thread: " + socket.getRemoteSocketAddress());
+			System.out.println("Finish send thread: " + username + socket.getRemoteSocketAddress());
 		}).start();
 	}
 
@@ -81,11 +82,11 @@ public class Session {
 					HandleSession.gI().processSesionMessage(this, message);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				// e.printStackTrace();
 			}
 			disconnect();
 			dis = null;
-			System.out.println("Finish receive thread: " + socket.getRemoteSocketAddress());
+			System.out.println("Finish receive thread: " + username + socket.getRemoteSocketAddress());
 		}).start();
 	}
 
@@ -134,7 +135,8 @@ public class Session {
 			if (p != null) {
 				Room r = RoomManager.gI().GetRoom(p);
 				if (r != null) {
-					r.removeFightPlayer(p);
+					FightPlayer fp = r.getFightPlayer(p);
+					r.removeFightPlayer(fp);
 					if (r.size() == 0) {
 						RoomManager.gI().remove(r);
 						r = null;

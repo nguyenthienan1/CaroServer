@@ -9,7 +9,7 @@ import io.Session;
 import server.PlayerManager;
 import server.RoomManager;
 
-public class Player extends Cmd_Client2Server{
+public class Player extends Cmd_Client2Server {
 	public Session conn;
 	public String username;
 	public int id;
@@ -55,7 +55,7 @@ public class Player extends Cmd_Client2Server{
 		Message m = new Message(Cmd_Server2Client.LEAVE_ROOM_SUCCESS);
 		conn.sendMessage(m);
 	}
-	
+
 	public void processMessage(Message m) throws Exception {
 		Room room = null;
 		switch (m.command) {
@@ -113,7 +113,7 @@ public class Player extends Cmd_Client2Server{
 			break;
 		}
 	}
-	
+
 	public static String checkRegister(String name, String pass, String repass) {
 		if (name.length() < 6 || name.length() > 13) {
 			return "Username is 6-12 in length";
