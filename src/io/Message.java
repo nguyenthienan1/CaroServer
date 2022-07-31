@@ -31,16 +31,4 @@ public class Message {
 	public byte[] getData() {
 		return os.toByteArray();
 	}
-
-	public void cleanup() {
-		try {
-			if (this.dis != null) {
-				this.dis.close();
-			}
-			if (this.dos != null) {
-				this.dos.close();
-			}
-		} catch (IOException var2) {
-		}
-	}
 }

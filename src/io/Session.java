@@ -113,14 +113,13 @@ public class Session {
 		return new Message(cmd, data);
 	}
 
-	public void SendMessageDialog(String mes) {
+	public void sendMessageDialog(String mes) {
 		Message m = new Message(Cmd_Server2Client.SHOW_MESSAGE_DIALOG);
 		try {
 			m.writer().writeUTF(mes);
 		} catch (IOException e) {
 		}
 		sendMessage(m);
-		m.cleanup();
 	}
 
 	public void disconnect() {
@@ -135,8 +134,8 @@ public class Session {
 			if (p != null) {
 				Room r = RoomManager.gI().GetRoom(p);
 				if (r != null) {
-					r.removePlayer(p);
-					if (r.sizeOfPlayers() == 0) {
+					r.removeFightPlayer(p);
+					if (r.size() == 0) {
 						RoomManager.gI().remove(r);
 						r = null;
 					} else {

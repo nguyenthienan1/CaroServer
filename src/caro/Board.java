@@ -3,8 +3,7 @@ package caro;
 import java.awt.Point;
 
 public class Board {
-	int row = 20;
-	int col = 20;
+	int edge = 20;
 	int[][] matrix = new int[20][20];
 	public Point flagPiece = new Point(-1, -1);
 
@@ -37,7 +36,7 @@ public class Board {
 
 	public int countVertical(int x, int y) {
 		int count = 0;
-		for (int i = y + 1; i < row; i++) {
+		for (int i = y + 1; i < edge; i++) {
 			if (matrix[x][i] == matrix[x][y]) {
 				count++;
 			} else {
@@ -56,7 +55,7 @@ public class Board {
 
 	public int countHorizontal(int x, int y) {
 		int count = 0;
-		for (int i = x + 1; i < row; i++) {
+		for (int i = x + 1; i < edge; i++) {
 			if (matrix[i][y] == matrix[x][y]) {
 				count++;
 			} else {
@@ -75,14 +74,14 @@ public class Board {
 
 	public int countDiagonal1(int x, int y) {
 		int count = 0;
-		for (int i = x + 1, j = y - 1; i < row && j >= 0; i++, j--) {
+		for (int i = x + 1, j = y - 1; i < edge && j >= 0; i++, j--) {
 			if (matrix[i][j] == matrix[x][y]) {
 				count++;
 			} else {
 				break;
 			}
 		}
-		for (int i = x - 1, j = y + 1; i >= 0 && j < row; i--, j++) {
+		for (int i = x - 1, j = y + 1; i >= 0 && j < edge; i--, j++) {
 			if (matrix[i][j] == matrix[x][y]) {
 				count++;
 			} else {
@@ -101,7 +100,7 @@ public class Board {
 				break;
 			}
 		}
-		for (int i = x + 1, j = y + 1; i < row && j < row; i++, j++) {
+		for (int i = x + 1, j = y + 1; i < edge && j < edge; i++, j++) {
 			if (matrix[i][j] == matrix[x][y]) {
 				count++;
 			} else {

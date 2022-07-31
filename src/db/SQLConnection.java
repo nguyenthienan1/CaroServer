@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 public class SQLConnection {
@@ -21,8 +22,15 @@ public class SQLConnection {
 		statement = conn.createStatement();
 	}
 
-	public int executeSQLUpdate(String sql) throws Exception {
-		return statement.executeUpdate(sql);
+	public boolean executeSQLUpdate(String sql) {
+		try {
+			statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			System.out.print("Can't update db");
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 
 	public void checkData(String str) throws Exception {

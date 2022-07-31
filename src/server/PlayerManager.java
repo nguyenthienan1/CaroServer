@@ -37,4 +37,13 @@ public class PlayerManager {
 	public int size() {
 		return playerHashMapName.size();
 	}
+	
+	public void show() {
+		System.out.print("\tid\tname");
+		System.out.println("\n----------------------------------");
+		playerHashMapName.forEach((name, player) -> {
+			System.out.print("\t" + player.id + "\t" + name);
+			System.out.println();
+		});
+	}
 }

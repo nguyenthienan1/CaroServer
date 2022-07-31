@@ -2,6 +2,7 @@ package server;
 
 import java.util.Vector;
 
+import caro.FightPlayer;
 import caro.Player;
 import caro.Room;
 
@@ -41,22 +42,20 @@ public class RoomManager {
 	}
 
 	public Room GetRoom(Player player) {
-		for (int i = 0; i < size(); i++) {
-			Room r = get(i);
-			if (r.players[0] == player) {
-				return r;
-			} else if (r.players[1] == player) {
-				return r;
+		for (Room room : Rooms) {
+			for (FightPlayer fightPlayer : room.vecFightPlayers) {
+				if (fightPlayer.player == player) {
+					return room;
+				}
 			}
 		}
 		return null;
 	}
 
 	public Room GetRoom(int roomNum) {
-		for (int i = 0; i < size(); i++) {
-			Room r = get(i);
-			if (r.RoomNumber == roomNum) {
-				return r;
+		for (Room room : Rooms) {
+			if (room.RoomNumber == roomNum) {
+				return room;
 			}
 		}
 		return null;
