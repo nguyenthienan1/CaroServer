@@ -50,7 +50,7 @@ public class CaroServer implements Runnable {
 	public void run() {
 		while (server) {
 			try {
-				Thread.sleep(10000);
+				Thread.sleep(20000);
 			} catch (InterruptedException e) {
 			}
 			System.out.println("Players online: " + PlayerManager.gI().size());
