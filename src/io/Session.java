@@ -8,18 +8,18 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-import caro.FightPlayer;
 import caro.Player;
-import caro.Room;
 import server.HandleSession;
 import server.PlayerManager;
-import server.RoomManager;
 
 public class Session {
+	private HandleSession handleSession = new HandleSession();
 	public String username;
 	public Socket socket;
 	private DataInputStream dis;
 	private DataOutputStream dos;
+	private SendMessageThread sendMessageThread;
+	private ReceiveMessageThread receiveMessageThread;
 	public long connectTime;
 	public int id;
 	public boolean connected;
@@ -33,6 +33,8 @@ public class Session {
 				dis = new DataInputStream(s.getInputStream());
 				dos = new DataOutputStream(s.getOutputStream());
 				connected = true;
+				sendMessageThread = new SendMessageThread();
+				receiveMessageThread = new ReceiveMessageThread();
 			}
 		} catch (IOException ioEx) {
 			ioEx.printStackTrace();
@@ -40,21 +42,23 @@ public class Session {
 	}
 
 	public void start() {
-		sendMessageThread();
-		receiveMessageThread();
+		sendMessageThread.start();
+		receiveMessageThread.start();
 	}
 
 	public void sendMessage(Message m) {
 		if (connected) {
 			try {
 				DataQueue.put(m);
-			} catch (Exception ignored) {
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}
 
-	private void sendMessageThread() {
-		new Thread(() -> {
+	class SendMessageThread extends Thread {
+		@Override
+		public void run() {
 			Message m;
 			try {
 				while (connected) {
@@ -64,53 +68,60 @@ public class Session {
 					}
 				}
 			} catch (Exception e) {
-				// e.printStackTrace();
+				e.printStackTrace();
 			}
 			disconnect();
-			DataQueue.clear();
-			dos = null;
-			System.out.println("Finish send thread: " + username + socket.getRemoteSocketAddress());
-		}).start();
+			// System.out.println("Finish send thread: " + socket.getRemoteSocketAddress());
+		}
 	}
 
-	private void receiveMessageThread() {
-		new Thread(() -> {
+	class ReceiveMessageThread extends Thread {
+		@Override
+		public void run() {
 			Message message;
 			try {
 				while (connected) {
 					message = readMessage();
-					HandleSession.gI().processSesionMessage(this, message);
+					handleSession.processSessionMessage(Session.this, message);
 				}
 			} catch (Exception e) {
-				// e.printStackTrace();
+				e.printStackTrace();
 			}
 			disconnect();
-			dis = null;
-			System.out.println("Finish receive thread: " + username + socket.getRemoteSocketAddress());
-		}).start();
+			// System.out.println("Finish receive thread: " +
+			// socket.getRemoteSocketAddress());
+		}
 	}
 
-	private void doSendMessage(Message m) throws IOException {
+	private void doSendMessage(Message m) throws Exception {
 		dos.writeInt(m.command);
 		byte[] data = m.getData();
-		int size = data.length;
-		dos.writeInt(size);
-		if (size > 0) {
+		if (data != null) {
+			int size = data.length;
+			dos.writeInt(size);
 			dos.write(data);
+			// System.out.println("Send message: command (" + m.command + ") size [" + size
+			// + "]");
+		} else {
+			dos.writeInt(0);
 		}
-//		 System.out.println("Send message: command (" + m.command + ") size [" + size
-//		 + "]");
+		dos.flush();
 	}
 
-	private Message readMessage() throws IOException {
+	private Message readMessage() throws Exception {
 		int cmd = dis.readInt();
 		int size = dis.readInt();
 		byte[] data = new byte[size];
-		if (size > 0) {
-			dis.read(data);
+		int len = 0;
+		int byteRead = 0;
+		while (len != -1 && byteRead < size) {
+			len = dis.read(data, byteRead, size - byteRead);
+			if (len > 0) {
+				byteRead += len;
+			}
 		}
-//		 System.out.println("Receive message: command (" + cmd + ") size [" + size +
-//		 "]");
+		// System.out.println("Receive message: command (" + cmd + ") size [" + size +
+		// "]");
 		return new Message(cmd, data);
 	}
 
@@ -131,20 +142,10 @@ public class Session {
 				e.printStackTrace();
 			}
 			connected = false;
-			Player p = PlayerManager.gI().get(username);
+			Player p = PlayerManager.gI().get(id);
 			if (p != null) {
-				Room r = RoomManager.gI().GetRoom(p);
-				if (r != null) {
-					FightPlayer fp = r.getFightPlayer(p);
-					r.removeFightPlayer(fp);
-					if (r.size() == 0) {
-						RoomManager.gI().remove(r);
-						r = null;
-					} else {
-						r.finishMatch();
-					}
-				}
-				PlayerManager.gI().remove(p);
+				p.disconnect();
+				System.out.println("Player " + p.username + " disconnected");
 				p = null;
 			}
 		}

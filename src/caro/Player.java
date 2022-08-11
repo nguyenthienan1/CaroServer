@@ -1,6 +1,7 @@
 package caro;
 
 import java.io.IOException;
+import java.util.*;
 
 import io.Cmd_Client2Server;
 import io.Cmd_Server2Client;
@@ -17,6 +18,7 @@ public class Player extends Cmd_Client2Server {
 	public Player(Session session) {
 		conn = session;
 		username = session.username;
+		id = session.id;
 	}
 
 	public void loginSuccess() {
@@ -41,12 +43,12 @@ public class Player extends Cmd_Client2Server {
 
 	public void sendListRoom() throws IOException {
 		Message m = new Message(Cmd_Server2Client.SEND_LIST_ROOM);
-		m.writer().writeInt(RoomManager.gI().size());
-		for (int i = 0; i < RoomManager.gI().size(); i++) {
-			Room r = RoomManager.gI().get(i);
-			m.writer().writeInt(r.RoomNumber);
-			m.writer().writeInt(r.size());
-			m.writer().writeBoolean(r.isFight);
+		ArrayList<Room> rooms = RoomManager.gI().toList();
+		m.writer().writeInt(rooms.size());
+		for (Room room : rooms) {
+			m.writer().writeInt(room.roomNumber);
+			m.writer().writeInt(room.size());
+			m.writer().writeBoolean(room.isFight);
 		}
 		conn.sendMessage(m);
 	}
@@ -58,6 +60,7 @@ public class Player extends Cmd_Client2Server {
 
 	public void processMessage(Message m) throws Exception {
 		Room room = null;
+		FightPlayer fightPlayer = null;
 		switch (m.command) {
 		case LOG_OUT:
 			PlayerManager.gI().remove(this);
@@ -65,23 +68,23 @@ public class Player extends Cmd_Client2Server {
 			System.out.println("Player " + username + " log out");
 			break;
 		case CREATE_ROOM:
-			room = RoomManager.gI().GetRoom(this);
-			if (room != null) {
+			fightPlayer = Room.cHashMapPlayerFight.get(id);
+			if (fightPlayer != null) {
 				sendMessageDialog("You are in another room");
 				break;
 			}
 			room = new Room(Room.baseId);
 			RoomManager.gI().add(room);
 			room.addFightPlayer(this);
-			joinRoomSuccess(room.RoomNumber);
+			joinRoomSuccess(room.roomNumber);
 			break;
 		case JOIN_ROOM:
-			room = RoomManager.gI().GetRoom(this);
-			if (room != null) {
+			fightPlayer = Room.cHashMapPlayerFight.get(id);
+			if (fightPlayer != null) {
 				sendMessageDialog("You are in another room");
 				break;
 			}
-			room = RoomManager.gI().GetRoom(m.reader().readInt());
+			room = RoomManager.gI().get(m.reader().readInt());
 			if (room == null) {
 				sendMessageDialog("Room not found, please update list room");
 				break;
@@ -90,7 +93,7 @@ public class Player extends Cmd_Client2Server {
 				sendMessageDialog("Room full");
 				break;
 			}
-			joinRoomSuccess(room.RoomNumber);
+			joinRoomSuccess(room.roomNumber);
 			break;
 		case UPDATE_LIST_ROOM:
 			sendListRoom();
@@ -99,19 +102,39 @@ public class Player extends Cmd_Client2Server {
 		case LEAVE_ROOM:
 		case CHAT_ROOM:
 		case READY:
-			room = RoomManager.gI().GetRoom(this);
-			if (room == null) {
-				System.out.println("Room null");
-				sendMessageDialog("An error occurred");
-				break;
-			} else {
-				FightPlayer fightPlayer = room.getFightPlayer(this);
-				if (fightPlayer != null) {
+			fightPlayer = Room.cHashMapPlayerFight.get(id);
+			if (fightPlayer != null) {
+				room = RoomManager.gI().get(fightPlayer.roomNumber);
+				if (room != null) {
 					room.processMessage(fightPlayer, m);
+				} else {
+					System.out.println("Room null");
+					sendMessageDialog("An error occurred");
 				}
+			} else {
+				System.out.println("Player fight null");
+				sendMessageDialog("An error occurred");
 			}
 			break;
 		}
+	}
+
+	public void disconnect() {
+		FightPlayer fightPlayer = Room.cHashMapPlayerFight.get(id);
+		if (fightPlayer != null) {
+			Room room = RoomManager.gI().get(fightPlayer.roomNumber);
+			if (room != null) {
+				room.removeFightPlayer(fightPlayer);
+				if (room.size() == 0) {
+					RoomManager.gI().remove(room.roomNumber);
+					room = null;
+				} else {
+					room.finishMatch();
+				}
+				fightPlayer = null;
+			}
+		}
+		PlayerManager.gI().remove(this);
 	}
 
 	public static String checkRegister(String name, String pass, String repass) {

@@ -1,13 +1,12 @@
 package server;
 
-import java.util.Vector;
+import java.util.*;
+import java.util.concurrent.*;
 
-import caro.FightPlayer;
-import caro.Player;
 import caro.Room;
 
 public class RoomManager {
-	private Vector<Room> Rooms = new Vector<>();
+	private ConcurrentHashMap<Integer, Room> cHashMapRoom = new ConcurrentHashMap<Integer, Room>();
 	public static RoomManager instance;
 
 	public static RoomManager gI() {
@@ -18,46 +17,22 @@ public class RoomManager {
 	}
 
 	public int size() {
-		return Rooms.size();
+		return cHashMapRoom.size();
 	}
 
-	public Room get(int at) {
-		return Rooms.get(at);
+	public Room get(int room_number) {
+		return cHashMapRoom.get(room_number);
 	}
 
-	public void remove(Room room) {
-		Rooms.remove(room);
-	}
-
-	public void remove(int at) {
-		Rooms.remove(at);
+	public void remove(int room_number) {
+		cHashMapRoom.remove(room_number);
 	}
 
 	public void add(Room room) {
-		Rooms.add(room);
+		cHashMapRoom.put(room.roomNumber, room);
 	}
 
-	public boolean contains(Room room) {
-		return Rooms.contains(room);
-	}
-
-	public Room GetRoom(Player player) {
-		for (Room room : Rooms) {
-			for (FightPlayer fightPlayer : room.vecFightPlayers) {
-				if (fightPlayer.player == player) {
-					return room;
-				}
-			}
-		}
-		return null;
-	}
-
-	public Room GetRoom(int roomNum) {
-		for (Room room : Rooms) {
-			if (room.RoomNumber == roomNum) {
-				return room;
-			}
-		}
-		return null;
+	public ArrayList<Room> toList() {
+		return new ArrayList<Room>(cHashMapRoom.values());
 	}
 }

@@ -1,12 +1,12 @@
 package server;
 
-import java.util.HashMap;
+import java.util.concurrent.*;
 
 import caro.Player;
 
 public class PlayerManager {
 	private static PlayerManager instance;
-	private HashMap<String, Player> playerHashMapName = new HashMap<>();
+	private ConcurrentHashMap<Integer, Player> cHashMapPlayer = new ConcurrentHashMap<Integer, Player>();
 
 	public static PlayerManager gI() {
 		if (instance == null) {
@@ -16,32 +16,32 @@ public class PlayerManager {
 	}
 
 	public void put(Player p) {
-		playerHashMapName.put(p.username, p);
+		cHashMapPlayer.put(p.id, p);
 		// System.out.println("Add player " + p.username);
 	}
-
-	public void remove(Player p) {
-		playerHashMapName.remove(p.username);
+	
+	public void remove(int id) {
+		cHashMapPlayer.remove(id);
 		// System.out.println("Remove player " + p.username);
 	}
 
-	public void remove(String username) {
-		playerHashMapName.remove(username);
-		// System.out.println("Remove player " + username);
+	public void remove(Player p) {
+		cHashMapPlayer.remove(p.id);
+		// System.out.println("Remove player " + p.username);
 	}
 
-	public Player get(String username) {
-		return playerHashMapName.get(username);
+	public Player get(int id) {
+		return cHashMapPlayer.get(id);
 	}
 
 	public int size() {
-		return playerHashMapName.size();
+		return cHashMapPlayer.size();
 	}
 
 	public void show() {
 		System.out.print("\tid\tname");
 		System.out.println("\n----------------------------------");
-		playerHashMapName.forEach((name, player) -> {
+		cHashMapPlayer.forEach((name, player) -> {
 			System.out.print("\t" + player.id + "\t" + name);
 			System.out.println();
 		});

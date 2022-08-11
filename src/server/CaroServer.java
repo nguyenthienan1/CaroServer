@@ -1,24 +1,41 @@
 package server;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import db.SQLConnection;
 import io.Session;
 
-public class CaroServer implements Runnable {
+public class CaroServer extends Thread {
 	public static int PORT = 8888;
 	public static boolean server;
 	public static SQLConnection sql;
 
 	public static void main(String[] args) {
+		new CaroServer().start();
+		while (true) {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
+			String str = null;
+			try {
+				str = reader.readLine();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			if (str.equals("online")) {
+				System.out.println(PlayerManager.gI().size());
+			}
+		}
+	}
+
+	@Override
+	public void run() {
 		try {
 			sql = new SQLConnection();
 			sql.checkData("SELECT * from user");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		new Thread(new CaroServer()).start();
 		server = true;
 		ServerSocket listenSocket = null;
 		try {
@@ -42,19 +59,8 @@ public class CaroServer implements Runnable {
 				e.printStackTrace();
 			}
 		}
-
+		server = false;
 		System.exit(0);
-	}
-
-	@Override
-	public void run() {
-		while (server) {
-			try {
-				Thread.sleep(20000);
-			} catch (InterruptedException e) {
-			}
-			System.out.println("Players online: " + PlayerManager.gI().size());
-		}
 
 	}
 }

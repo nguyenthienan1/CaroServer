@@ -1,7 +1,8 @@
 package caro;
 
 import java.io.IOException;
-import java.util.Vector;
+import java.util.*;
+import java.util.concurrent.*;
 
 import io.Cmd_Client2Server;
 import io.Cmd_Server2Client;
@@ -9,52 +10,41 @@ import io.Message;
 import server.RoomManager;
 
 public class Room extends Cmd_Client2Server {
+	public static ConcurrentHashMap<Integer, FightPlayer> cHashMapPlayerFight = new ConcurrentHashMap<Integer, FightPlayer>();
 	public static int baseId;
-	public int RoomNumber;
+	public int roomNumber;
 	public Vector<FightPlayer> vecFightPlayers = new Vector<FightPlayer>();
-	public FightPlayer currentPlayer = null;
-	public FightPlayer waitPlayer = null;
 	public Board board = new Board();
 	public int countReady;
 	public boolean isFight;
 
-	public Room(int roomNum) {
+	public Room(int room_number) {
 		baseId++;
-		RoomNumber = roomNum;
+		roomNumber = room_number;
 	}
 
 	public boolean addFightPlayer(Player player) {
 		if (vecFightPlayers.size() >= 2) {
 			return false;
 		}
-		FightPlayer fightPlayer = new FightPlayer(player);
+		FightPlayer fightPlayer = new FightPlayer(player, roomNumber);
 		vecFightPlayers.add(fightPlayer);
+		cHashMapPlayerFight.put(player.id, fightPlayer);
 		return true;
 	}
 
 	public void removeFightPlayer(FightPlayer fightPlayer) {
 		vecFightPlayers.remove(fightPlayer);
+		cHashMapPlayerFight.remove(fightPlayer.player.id);
 	}
-
-	public FightPlayer getFightPlayer(Player player) {
-		for (FightPlayer fightPlayer : vecFightPlayers) {
-			if (fightPlayer.player == player) {
-				return fightPlayer;
-			}
-		}
-		return null;
-	}
-
+	
 	public int size() {
 		return vecFightPlayers.size();
 	}
 
-	private void swapTurn(FightPlayer fightPlayer) {
-		waitPlayer = fightPlayer;
+	private void swapTurn() {
 		for (FightPlayer fightP : vecFightPlayers) {
-			if (fightP != fightPlayer) {
-				currentPlayer = fightP;
-			}
+			fightP.isTurn = !fightP.isTurn;
 		}
 	}
 
@@ -65,7 +55,7 @@ public class Room extends Cmd_Client2Server {
 				fightPlayer.sendMessageDialog("The match not started yet");
 				break;
 			}
-			if (fightPlayer != currentPlayer) {
+			if (!fightPlayer.isTurn) {
 				fightPlayer.sendMessageDialog("It's not your turn yet");
 				break;
 			}
@@ -76,7 +66,7 @@ public class Room extends Cmd_Client2Server {
 			int checkSetPiece = board.setPiece(xPiece, yPiece, fightPlayer.isX);
 			if (checkSetPiece != 0) {
 				sendBoard();
-				swapTurn(fightPlayer);
+				swapTurn();
 				if (checkSetPiece == 2) {
 					win(true);
 				} else if (checkSetPiece == 3) {
@@ -87,7 +77,7 @@ public class Room extends Cmd_Client2Server {
 		case LEAVE_ROOM:
 			removeFightPlayer(fightPlayer);
 			if (size() == 0) {
-				RoomManager.gI().remove(this);
+				RoomManager.gI().remove(roomNumber);
 			}
 			sendMessageDialog(fightPlayer.player.username + " leaved room");
 			fightPlayer.player.leaveRoomSuccess();
@@ -107,7 +97,7 @@ public class Room extends Cmd_Client2Server {
 				fightPlayer.sendMessageDialog("The match has started, can't ready");
 				break;
 			}
-			if (fightPlayer == currentPlayer || fightPlayer == waitPlayer) {
+			if (fightPlayer.isReady) {
 				fightPlayer.sendMessageDialog("You have readied");
 				break;
 			}
@@ -116,12 +106,14 @@ public class Room extends Cmd_Client2Server {
 				break;
 			}
 			countReady++;
+			fightPlayer.isReady = true;
 			if (countReady == 1) {
 				fightPlayer.isX = true;
-				currentPlayer = fightPlayer;
+				fightPlayer.isTurn = true;
 				sendChat("Server: player " + fightPlayer.player.username + " are ready");
 			} else if (countReady == 2) {
-				waitPlayer = fightPlayer;
+				fightPlayer.isX = false;
+				fightPlayer.isTurn = false;
 				board = new Board();
 				sendChat("Server: player " + fightPlayer.player.username + " are ready");
 				isFight = true;
@@ -134,28 +126,28 @@ public class Room extends Cmd_Client2Server {
 	public void finishMatch() {
 		countReady = 0;
 		isFight = false;
-		currentPlayer = null;
-		waitPlayer = null;
 		board = new Board();
 		for (FightPlayer fightPlayer : vecFightPlayers) {
 			fightPlayer.isX = false;
+			fightPlayer.isTurn = false;
+			fightPlayer.isReady = false;
 		}
-		resetBoard();
+		sendResetBoard();
 	}
 
 	private void win(boolean isX) {
-		Player pWin = null;
-		Player pLose = null;
+		FightPlayer pWin = null;
+		FightPlayer pLose = null;
 		for (FightPlayer fightPlayer : vecFightPlayers) {
 			if (fightPlayer.isX == isX) {
-				pWin = fightPlayer.player;
+				pWin = fightPlayer;
 			} else {
-				pLose = fightPlayer.player;
+				pLose = fightPlayer;
 			}
 		}
 		if (pWin != null && pLose != null) {
 			pWin.sendMessageDialog("You win");
-			pLose.sendMessageDialog("You lose, player " + pWin.username + " won");
+			pLose.sendMessageDialog("You lose, player " + pWin.player.username + " won");
 			finishMatch();
 		}
 	}
@@ -190,7 +182,7 @@ public class Room extends Cmd_Client2Server {
 		}
 	}
 
-	public void resetBoard() {
+	public void sendResetBoard() {
 		Message m = new Message(Cmd_Server2Client.RESET_BOARD);
 		sendBroadCast(m);
 	}

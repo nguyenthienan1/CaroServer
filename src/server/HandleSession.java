@@ -8,16 +8,8 @@ import io.Message;
 import io.Session;
 
 public class HandleSession extends Cmd_Client2Server {
-	private static HandleSession instance;
 
-	public static HandleSession gI() {
-		if (instance == null) {
-			instance = new HandleSession();
-		}
-		return instance;
-	}
-
-	synchronized public void processSesionMessage(Session conn, Message m) throws Exception {
+	public void processSessionMessage(Session conn, Message m) throws Exception {
 		Player player = null;
 		switch (m.command) {
 		case LOGIN:
@@ -27,14 +19,14 @@ public class HandleSession extends Cmd_Client2Server {
 					+ username + "' AND `password`LIKE'" + password + "');");
 
 			if (rs != null && rs.first()) {
-				player = PlayerManager.gI().get(username);
+				int id = rs.getInt("id");
+				player = PlayerManager.gI().get(id);
 				if (player != null) {
 					conn.sendMessageDialog("Your account login on other device, please try again");
 				} else {
-					int id = rs.getInt("id");
 					conn.username = username;
+					conn.id = id;
 					player = new Player(conn);
-					player.id = id;
 					PlayerManager.gI().put(player);
 					player.loginSuccess();
 					System.out.println("Player " + player.username + " login");
@@ -72,7 +64,7 @@ public class HandleSession extends Cmd_Client2Server {
 		case LEAVE_ROOM:
 		case CHAT_ROOM:
 		case READY:
-			player = PlayerManager.gI().get(conn.username);
+			player = PlayerManager.gI().get(conn.id);
 			if (player == null) {
 				conn.sendMessageDialog("An error occurred");
 				System.out.println("Player null");
