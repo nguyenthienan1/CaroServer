@@ -32,7 +32,7 @@ public class RoomManager {
 		cHashMapRoom.put(room.roomNumber, room);
 	}
 
-	public ArrayList<Room> toList() {
+	public ArrayList<Room> toArrayList() {
 		return new ArrayList<Room>(cHashMapRoom.values());
 	}
 }

@@ -43,7 +43,7 @@ public class Player extends Cmd_Client2Server {
 
 	public void sendListRoom() throws IOException {
 		Message m = new Message(Cmd_Server2Client.SEND_LIST_ROOM);
-		ArrayList<Room> rooms = RoomManager.gI().toList();
+		ArrayList<Room> rooms = RoomManager.gI().toArrayList();
 		m.writer().writeInt(rooms.size());
 		for (Room room : rooms) {
 			m.writer().writeInt(room.roomNumber);

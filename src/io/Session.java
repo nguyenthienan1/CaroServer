@@ -4,9 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import caro.Player;
 import server.HandleSession;
@@ -23,7 +21,7 @@ public class Session {
 	public long connectTime;
 	public int id;
 	public boolean connected;
-	private final BlockingQueue<Message> DataQueue = new ArrayBlockingQueue<>(64);
+	private LinkedBlockingQueue<Message> DataQueue = new LinkedBlockingQueue<>();
 
 	public Session(Socket s) {
 		connectTime = System.currentTimeMillis();

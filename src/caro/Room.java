@@ -24,7 +24,7 @@ public class Room extends Cmd_Client2Server {
 	}
 
 	public boolean addFightPlayer(Player player) {
-		if (vecFightPlayers.size() >= 2) {
+		if (size() >= 2) {
 			return false;
 		}
 		FightPlayer fightPlayer = new FightPlayer(player, roomNumber);
@@ -118,6 +118,7 @@ public class Room extends Cmd_Client2Server {
 				sendChat("Server: player " + fightPlayer.player.username + " are ready");
 				isFight = true;
 				sendChat("Server: Match start");
+				sendResetBoard();
 			}
 			break;
 		}
@@ -132,7 +133,6 @@ public class Room extends Cmd_Client2Server {
 			fightPlayer.isTurn = false;
 			fightPlayer.isReady = false;
 		}
-		sendResetBoard();
 	}
 
 	private void win(boolean isX) {
