@@ -16,7 +16,7 @@ public class CaroServer extends Thread {
 		while (true) {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
-			String str = null;
+			String str = "";
 			try {
 				str = reader.readLine();
 			} catch (IOException e) {
@@ -24,6 +24,9 @@ public class CaroServer extends Thread {
 			}
 			if (str.equals("online")) {
 				System.out.println(PlayerManager.gI().size());
+			}
+			if (str.equals("gc")) {
+				System.gc();
 			}
 		}
 	}

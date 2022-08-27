@@ -9,11 +9,13 @@ import java.util.concurrent.*;
 import caro.Player;
 import server.HandleSession;
 import server.PlayerManager;
+import server.ServiceSession;
 
 public class Session {
-	private HandleSession handleSession = new HandleSession();
+	private HandleSession handle;
+	private ServiceSession service;
 	public String username;
-	public Socket socket;
+	private Socket socket;
 	private DataInputStream dis;
 	private DataOutputStream dos;
 	private SendMessageThread sendMessageThread;
@@ -23,16 +25,18 @@ public class Session {
 	public boolean connected;
 	private LinkedBlockingQueue<Message> DataQueue = new LinkedBlockingQueue<>();
 
-	public Session(Socket s) {
+	public Session(Socket socket) {
 		connectTime = System.currentTimeMillis();
 		try {
-			if (s != null) {
-				socket = s;
-				dis = new DataInputStream(s.getInputStream());
-				dos = new DataOutputStream(s.getOutputStream());
+			if (socket != null) {
+				this.socket = socket;
+				dis = new DataInputStream(socket.getInputStream());
+				dos = new DataOutputStream(socket.getOutputStream());
 				connected = true;
 				sendMessageThread = new SendMessageThread();
 				receiveMessageThread = new ReceiveMessageThread();
+				handle = new HandleSession(this);
+				service = new ServiceSession(this);
 			}
 		} catch (IOException ioEx) {
 			ioEx.printStackTrace();
@@ -42,6 +46,10 @@ public class Session {
 	public void start() {
 		sendMessageThread.start();
 		receiveMessageThread.start();
+	}
+
+	public ServiceSession getService() {
+		return service;
 	}
 
 	public void sendMessage(Message m) {
@@ -61,9 +69,10 @@ public class Session {
 			try {
 				while (connected) {
 					m = DataQueue.poll(5, TimeUnit.SECONDS);
-					if (m != null) {
-						doSendMessage(m);
+					if (m == null) {
+						continue;
 					}
+					doSendMessage(m);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -80,7 +89,7 @@ public class Session {
 			try {
 				while (connected) {
 					message = readMessage();
-					handleSession.processSessionMessage(Session.this, message);
+					handle.processSessionMessage(message);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -121,15 +130,6 @@ public class Session {
 		// System.out.println("Receive message: command (" + cmd + ") size [" + size +
 		// "]");
 		return new Message(cmd, data);
-	}
-
-	public void sendMessageDialog(String mes) {
-		Message m = new Message(Cmd_Server2Client.SHOW_MESSAGE_DIALOG);
-		try {
-			m.writer().writeUTF(mes);
-		} catch (IOException e) {
-		}
-		sendMessage(m);
 	}
 
 	public void disconnect() {

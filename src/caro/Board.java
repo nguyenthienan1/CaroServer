@@ -3,8 +3,8 @@ package caro;
 import java.awt.Point;
 
 public class Board {
-	int edge = 20;
-	int[][] matrix = new int[20][20];
+	public int edge = 20;
+	public int[][] matrix = new int[20][20];
 	public Point flagPiece = new Point(-1, -1);
 
 	public Board() {

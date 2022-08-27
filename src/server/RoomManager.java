@@ -27,6 +27,10 @@ public class RoomManager {
 	public void remove(int room_number) {
 		cHashMapRoom.remove(room_number);
 	}
+	
+	public void remove(Room room) {
+		cHashMapRoom.remove(room.roomNumber);
+	}
 
 	public void add(Room room) {
 		cHashMapRoom.put(room.roomNumber, room);
