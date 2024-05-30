@@ -2,8 +2,10 @@ package server;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import caro.Board;
+import caro.FightPlayer;
 import caro.Room;
 import io.Cmd_Server2Client;
 import io.Message;
@@ -95,5 +97,18 @@ public class ServiceSession extends Cmd_Server2Client {
 	public void sendResetBoard() {
 		Message m = new Message(RESET_BOARD);
 		sendMessage(m);
+	}
+
+	public void senListPlayerInRoom(Vector<FightPlayer> players, int type) {
+		Message message = new Message(LIST_PLAYER_ROOM);
+		try {
+			message.writer().writeByte(type);
+			message.writer().writeInt(players.size());
+			for (FightPlayer player : players) {
+				message.writer().writeUTF(player.player.username);
+			}
+		} catch (IOException e) {
+		}
+		sendMessage(message);
 	}
 }

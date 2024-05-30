@@ -3,18 +3,28 @@ package caro;
 import java.awt.Point;
 
 public class Board {
-	public int edge = 20;
-	public int[][] matrix = new int[20][20];
+	public static final int EMPTY = 0;
+	public static final int X = 1;
+	public static final int O = 2;
+	public int size = 20;
+	public int[][] matrix = new int[size][size];
 	public Point flagPiece = new Point(-1, -1);
 
 	public Board() {
 	}
 
+	/***
+	 * đặt cờ vào bàn
+	 * @param x vị trí x
+	 * @param y vị trí y
+	 * @param isX cờ x hay o
+	 * @return 0 nếu vị trí x >= size hoặc y >= size hoặc vị trí đó đã được đặt, 1 nếu cờ được đặt bình thường, 2 nếu player 1 win, 3 nếu player 2 win
+	 */
 	public int setPiece(int x, int y, boolean isX) {
-		if (x >= 20 || y >= 20 || matrix[x][y] != 0) {
+		if (x >= size || y >= size || matrix[x][y] != EMPTY) {
 			return 0;
 		}
-		matrix[x][y] = isX ? 1 : 2;
+		matrix[x][y] = isX ? X : O;
 		flagPiece.setLocation(x, y);
 
 		int player = checkWin(x, y);
@@ -36,7 +46,7 @@ public class Board {
 
 	public int countVertical(int x, int y) {
 		int count = 0;
-		for (int i = y + 1; i < edge; i++) {
+		for (int i = y + 1; i < size; i++) {
 			if (matrix[x][i] == matrix[x][y]) {
 				count++;
 			} else {
@@ -55,7 +65,7 @@ public class Board {
 
 	public int countHorizontal(int x, int y) {
 		int count = 0;
-		for (int i = x + 1; i < edge; i++) {
+		for (int i = x + 1; i < size; i++) {
 			if (matrix[i][y] == matrix[x][y]) {
 				count++;
 			} else {
@@ -74,14 +84,14 @@ public class Board {
 
 	public int countDiagonal1(int x, int y) {
 		int count = 0;
-		for (int i = x + 1, j = y - 1; i < edge && j >= 0; i++, j--) {
+		for (int i = x + 1, j = y - 1; i < size && j >= 0; i++, j--) {
 			if (matrix[i][j] == matrix[x][y]) {
 				count++;
 			} else {
 				break;
 			}
 		}
-		for (int i = x - 1, j = y + 1; i >= 0 && j < edge; i--, j++) {
+		for (int i = x - 1, j = y + 1; i >= 0 && j < size; i--, j++) {
 			if (matrix[i][j] == matrix[x][y]) {
 				count++;
 			} else {
@@ -100,7 +110,7 @@ public class Board {
 				break;
 			}
 		}
-		for (int i = x + 1, j = y + 1; i < edge && j < edge; i++, j++) {
+		for (int i = x + 1, j = y + 1; i < size && j < size; i++, j++) {
 			if (matrix[i][j] == matrix[x][y]) {
 				count++;
 			} else {

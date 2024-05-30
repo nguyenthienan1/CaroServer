@@ -61,13 +61,15 @@ public class Player extends Cmd_Client2Server {
 		try {
 			FightPlayer fightPlayer = Room.cHashMapPlayerFight.get(id);
 			if (fightPlayer != null) {
-				getServiceSession().sendMessageDialog("You are in another room");
+				getServiceSession().sendMessageDialog("Bạn đang ở trong phòng khác");
 				return;
 			}
 			Room room = new Room(Room.baseId);
 			RoomManager.gI().add(room);
 			room.addFightPlayer(this);
 			getServiceSession().joinRoomSuccess(room.roomNumber);
+			
+			room.sendListPlayerBC();
 		} catch (Exception e) {
 		}
 	}
@@ -76,19 +78,21 @@ public class Player extends Cmd_Client2Server {
 		try {
 			FightPlayer fightPlayer = Room.cHashMapPlayerFight.get(id);
 			if (fightPlayer != null) {
-				getServiceSession().sendMessageDialog("You are in another room");
+				getServiceSession().sendMessageDialog("Bạn đang ở trong phòng khác");
 				return;
 			}
 			Room room = RoomManager.gI().get(m.reader().readInt());
 			if (room == null) {
-				getServiceSession().sendMessageDialog("Room not found, please update list room");
+				getServiceSession().sendMessageDialog("Không tìm thấy phòng đã chọn, hãy cập nhật danh sách phòng");
 				return;
 			}
 			if (!room.addFightPlayer(this)) {
-				getServiceSession().sendMessageDialog("Room full");
+				getServiceSession().sendMessageDialog("Phòng đã đầy");
 				return;
 			}
 			getServiceSession().joinRoomSuccess(room.roomNumber);
+			
+			room.sendListPlayerBC();
 		} catch (Exception e) {
 		}
 	}

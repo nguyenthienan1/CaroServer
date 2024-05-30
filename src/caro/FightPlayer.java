@@ -49,11 +49,11 @@ public class FightPlayer extends Cmd_Client2Server {
 	private void setPiece(Room room, Message m) {
 		try {
 			if (!room.isFight) {
-				getServiceSession().sendMessageDialog("The match not started yet");
+				getServiceSession().sendMessageDialog("Trận đấu chưa bắt đầu");
 				return;
 			}
 			if (!isTurn) {
-				getServiceSession().sendMessageDialog("It's not your turn yet");
+				getServiceSession().sendMessageDialog("Chưa đến lượt bạn");
 				return;
 			}
 
@@ -84,9 +84,11 @@ public class FightPlayer extends Cmd_Client2Server {
 				RoomManager.gI().remove(room);
 				room = null;
 			} else {
-				room.sendMsgDialogBC(player.username + " leaved room");
+				room.sendMsgDialogBC(player.username + " đã rời phòng");
 			}
 			getServiceSession().leaveRoomSuccess();
+			
+			room.sendListPlayerBC();
 		} catch (Exception e) {
 		}
 	}
@@ -105,15 +107,15 @@ public class FightPlayer extends Cmd_Client2Server {
 	private void ready(Room room, Message m) {
 		try {
 			if (room.isFight) {
-				getServiceSession().sendMessageDialog("The match has started, can't ready");
+				getServiceSession().sendMessageDialog("Trận đấu đang diễn ra");
 				return;
 			}
 			if (isReady) {
-				getServiceSession().sendMessageDialog("You have readied");
+				getServiceSession().sendMessageDialog("Bạn đã sẵn sàng rồi");
 				return;
 			}
 			if (room.size() < 2) {
-				getServiceSession().sendMessageDialog("Please wait more player join room");
+				getServiceSession().sendMessageDialog("Vui lòng chờ thêm người chơi khác vào phòng");
 				return;
 			}
 			room.countReady++;
@@ -121,12 +123,12 @@ public class FightPlayer extends Cmd_Client2Server {
 			if (room.countReady == 1) {
 				isX = true;
 				isTurn = true;
-				room.sendChatBC("Server: player " + player.username + " are ready");
+				room.sendChatBC("Server: player " + player.username + " đã sẵn sàng");
 			} else if (room.countReady == 2) {
 				isX = false;
 				isTurn = false;
 				room.board = new Board();
-				room.sendChatBC("Server: player " + player.username + " are ready");
+				room.sendChatBC("Server: player " + player.username + " đã sẵn sàng");
 				room.isFight = true;
 				room.sendChatBC("Server: Match start");
 				room.sendResetBoardBC();

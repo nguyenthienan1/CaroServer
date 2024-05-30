@@ -66,8 +66,8 @@ public class Room extends Cmd_Client2Server {
 			}
 		}
 		if (pWin != null && pLose != null) {
-			pWin.getServiceSession().sendMessageDialog("You win");
-			pLose.getServiceSession().sendMessageDialog("You lose, player " + pWin.player.username + " won");
+			pWin.getServiceSession().sendMessageDialog("Bạn đã thắng, xin chúc mừng");
+			pLose.getServiceSession().sendMessageDialog("Thua mất rồi, người chơi " + pWin.player.username + " đã chiến thắng");
 			finishMatch();
 		}
 	}
@@ -94,6 +94,12 @@ public class Room extends Cmd_Client2Server {
 	public void sendResetBoardBC() {
 		for (FightPlayer fightPlayer : vecFightPlayers) {
 			fightPlayer.getServiceSession().sendResetBoard();
+		}
+	}
+	
+	public void sendListPlayerBC() {
+		for (FightPlayer fightPlayer : vecFightPlayers) {
+			fightPlayer.getServiceSession().senListPlayerInRoom(vecFightPlayers, 0);
 		}
 	}
 

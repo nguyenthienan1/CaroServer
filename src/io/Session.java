@@ -73,9 +73,10 @@ public class Session {
 						continue;
 					}
 					doSendMessage(m);
+					dos.flush();
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+//				e.printStackTrace();
 			}
 			disconnect();
 			// System.out.println("Finish send thread: " + socket.getRemoteSocketAddress());
@@ -92,7 +93,7 @@ public class Session {
 					handle.processSessionMessage(message);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+//				e.printStackTrace();
 			}
 			disconnect();
 			// System.out.println("Finish receive thread: " +
@@ -112,7 +113,6 @@ public class Session {
 		} else {
 			dos.writeInt(0);
 		}
-		dos.flush();
 	}
 
 	private Message readMessage() throws Exception {

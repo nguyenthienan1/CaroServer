@@ -14,11 +14,7 @@ public class SQLConnection {
 	public Statement statement;
 
 	public SQLConnection() throws Exception {
-		// Load the JDBC driver.
-		Class.forName("com.mysql.jdbc.Driver");
-//		System.out.println("Driver Loaded.");
-		Connection conn = DriverManager.getConnection("jdbc:mysql://localhost/caro", "root", "14012002");
-//		System.out.println("Got Connection.");
+		Connection conn = DriverManager.getConnection("jdbc:mariadb://localhost/caro", "root", "");
 		statement = conn.createStatement();
 	}
 

@@ -53,14 +53,14 @@ public class HandleSession extends Cmd_Client2Server {
 		try {
 			String username = m.reader().readUTF();
 			String password = m.reader().readUTF();
-			ResultSet rs = CaroServer.sql.statement.executeQuery("SELECT * FROM `user` WHERE (`username`LIKE'"
-					+ username + "' AND `password`LIKE'" + password + "');");
+			ResultSet rs = CaroServer.sql.statement.executeQuery("SELECT * FROM `user` WHERE (`username`='"
+					+ username + "' AND `password` = '" + password + "');");
 
 			if (rs != null && rs.first()) {
 				int id = rs.getInt("id");
 				Player player = PlayerManager.gI().get(id);
 				if (player != null) {
-					getServiceSesion().sendMessageDialog("Your account login on other device, please try again");
+					getServiceSesion().sendMessageDialog("Tài khoản của bạn đang đăng nhập ở nơi khác, vui lòng thử lại sau");
 				} else {
 					session.username = username;
 					session.id = id;
@@ -70,7 +70,7 @@ public class HandleSession extends Cmd_Client2Server {
 					System.out.println("Player " + player.username + " login");
 				}
 			} else {
-				getServiceSesion().sendMessageDialog("Username or password incorrect");
+				getServiceSesion().sendMessageDialog("Tên tài khoản hoặc mật khẩu không chính xác");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -96,7 +96,7 @@ public class HandleSession extends Cmd_Client2Server {
 				String sql = "INSERT INTO `user`(`id`, `username`, `password`) VALUES (0,'" + username + "','" + pass
 						+ "')";
 				if (CaroServer.sql.executeSQLUpdate(sql))
-					getServiceSesion().sendMessageDialog("Register success");
+					getServiceSesion().sendMessageDialog("Tạo tài khoản thành công");
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -105,23 +105,23 @@ public class HandleSession extends Cmd_Client2Server {
 
 	private String checkRegister(String name, String pass, String repass) {
 		if (name.length() < 6 || name.length() > 13) {
-			return "Username is 6-12 in length";
+			return "Tên tài khoản phải có độ dài lớn hơn 6 và nhỏ hơn 12";
 		}
 		if (pass.length() < 6 || pass.length() > 13) {
-			return "Password is 6-12 in length";
+			return "Mật khẩu phải có độ dài lớn hơn 6 và nhỏ hơn 12";
 		}
 		if (!pass.equals(repass)) {
-			return "Your password and confirmation password do not match";
+			return "Mật khẩu và mật khẩu nhập lại không khớp nhau";
 		}
 		String check = "abcdefghijklmnopqrstuvwxyz1234567890";
 		for (int i = 0; i < name.length(); i++) {
 			if (!check.contains(String.valueOf(name.charAt(i)))) {
-				return "Username contains only a-z and 1-9";
+				return "Tên tài khoản chỉ được chứa các kí tự a-z, 0-9 và không chứa kí tự đặc biệt";
 			}
 		}
 		for (int i = 0; i < pass.length(); i++) {
 			if (!check.contains(String.valueOf(pass.charAt(i)))) {
-				return "Password contains only a-z and 1-9";
+				return "Mật khẩu chỉ được chứa các kí tự a-z, 0-9 và không chứa kí tự đặc biệt";
 			}
 		}
 		return null;
