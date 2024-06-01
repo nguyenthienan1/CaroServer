@@ -1,4 +1,4 @@
-package io;
+package network;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -6,14 +6,17 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.*;
 
+import caro.HumanPlayer;
 import caro.Player;
-import server.HandleSession;
+import network.io.Message;
+import network.logic.HandleSession;
+import network.logic.Service;
+import network.logic.ServiceSession;
 import server.PlayerManager;
-import server.ServiceSession;
 
 public class Session {
 	private HandleSession handle;
-	private ServiceSession service;
+	private Service service;
 	public String username;
 	private Socket socket;
 	private DataInputStream dis;
@@ -48,7 +51,7 @@ public class Session {
 		receiveMessageThread.start();
 	}
 
-	public ServiceSession getService() {
+	public Service getService() {
 		return service;
 	}
 
@@ -142,7 +145,7 @@ public class Session {
 			connected = false;
 			Player p = PlayerManager.gI().get(id);
 			if (p != null) {
-				p.disconnect();
+				((HumanPlayer) p).disconnect();
 				System.out.println("Player " + p.username + " disconnected");
 				p = null;
 			}

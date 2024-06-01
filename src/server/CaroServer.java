@@ -3,13 +3,13 @@ package server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import db.SQLConnection;
-import io.Session;
+
+import database.SQLConnection;
+import network.Session;
 
 public class CaroServer extends Thread {
 	public static int PORT = 8888;
 	public static boolean server;
-	public static SQLConnection sql;
 
 	public static void main(String[] args) {
 		new CaroServer().start();
@@ -34,8 +34,8 @@ public class CaroServer extends Thread {
 	@Override
 	public void run() {
 		try {
-			sql = new SQLConnection();
-			sql.checkData("SELECT * from user");
+			SQLConnection.connect();
+			SQLConnection.gI().checkData("SELECT * from user");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

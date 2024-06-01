@@ -2,11 +2,12 @@ package server;
 
 import java.util.concurrent.*;
 
+import caro.HumanPlayer;
 import caro.Player;
 
 public class PlayerManager {
 	private static PlayerManager instance;
-	private ConcurrentHashMap<Integer, Player> cHashMapPlayer = new ConcurrentHashMap<Integer, Player>();
+	private ConcurrentHashMap<Integer, HumanPlayer> players = new ConcurrentHashMap<Integer, HumanPlayer>();
 
 	public static PlayerManager gI() {
 		if (instance == null) {
@@ -15,35 +16,41 @@ public class PlayerManager {
 		return instance;
 	}
 
-	public void put(Player p) {
-		cHashMapPlayer.put(p.id, p);
+	public void put(HumanPlayer p) {
+		players.put(p.id, p);
 		// System.out.println("Add player " + p.username);
 	}
 	
 	public void remove(int id) {
-		cHashMapPlayer.remove(id);
+		players.remove(id);
 		// System.out.println("Remove player " + p.username);
 	}
 
-	public void remove(Player p) {
-		cHashMapPlayer.remove(p.id);
+	public void remove(HumanPlayer p) {
+		players.remove(p.id);
 		// System.out.println("Remove player " + p.username);
 	}
 
-	public Player get(int id) {
-		return cHashMapPlayer.get(id);
+	public HumanPlayer get(int id) {
+		return players.get(id);
 	}
 
 	public int size() {
-		return cHashMapPlayer.size();
+		return players.size();
 	}
 
 	public void show() {
 		System.out.print("\tid\tname");
 		System.out.println("\n----------------------------------");
-		cHashMapPlayer.forEach((name, player) -> {
+		players.forEach((name, player) -> {
 			System.out.print("\t" + player.id + "\t" + name);
 			System.out.println();
 		});
+	}
+	
+	public void sendListRoomBC() {
+		for (Player player : players.values()) {
+			player.getService().sendListRoom();
+		}
 	}
 }
